@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Check, AlertCircle } from 'lucide-react';
 import { finalizeEntry } from '../services/database';
+import { useToast } from '../context/ToastContext';
 import type { OptimizationResult } from '../types/documentation';
 
 interface OptimizationResultProps {
@@ -20,33 +21,31 @@ export default function OptimizationResultComponent({
 }: OptimizationResultProps) {
   const [showOriginal, setShowOriginal] = useState(false);
   const [editedText, setEditedText] = useState(result.optimizedText);
-  const [showSavedMessage, setShowSavedMessage] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
-  const [finalizeError, setFinalizeError] = useState<string | null>(null);
   const [finalizeSuccess, setFinalizeSuccess] = useState(false);
+  const { showToast } = useToast();
 
   const handleSave = () => {
     onSave(editedText);
-    setShowSavedMessage(true);
-    setTimeout(() => setShowSavedMessage(false), 3000);
+    showToast('Entry saved as draft', 'success');
   };
 
   const handleFinalize = async () => {
     if (!entryId) {
-      setFinalizeError('Kein Eintrag vorhanden.');
+      showToast('No entry to finalize', 'error');
       return;
     }
 
     setIsFinalizing(true);
-    setFinalizeError(null);
 
     const finalized = await finalizeEntry(entryId, editedText);
 
     if (finalized) {
       setFinalizeSuccess(true);
       onFinalizeExport(editedText);
+      showToast('Entry finalized successfully', 'success');
     } else {
-      setFinalizeError('Fehler beim Finalisieren des Eintrags.');
+      showToast('Failed to finalize entry', 'error');
     }
 
     setIsFinalizing(false);
@@ -124,24 +123,10 @@ export default function OptimizationResultComponent({
         </div>
       )}
 
-      {showSavedMessage && (
-        <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded animate-pulse">
-          <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-          <p className="text-sm text-green-700">Eintrag gespeichert (Entwurf).</p>
-        </div>
-      )}
-
       {finalizeSuccess && (
         <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded">
           <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-          <p className="text-sm text-green-700">Eintrag finalisiert. Datei bereit zum Download.</p>
-        </div>
-      )}
-
-      {finalizeError && (
-        <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded">
-          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-red-700">{finalizeError}</p>
+          <p className="text-sm text-green-700">Entry finalized and ready to export.</p>
         </div>
       )}
 

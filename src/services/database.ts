@@ -12,6 +12,8 @@ export interface DocumentationEntryData {
   value_after: number;
   mappings: Array<{ key: string; value: string }>;
   status: 'draft' | 'final';
+  created_by?: string;
+  updated_by?: string;
   created_at?: string;
   updated_at?: string;
   finalized_at?: string | null;
@@ -24,6 +26,15 @@ export async function createEntry(
   optimizationLevel: 'standard' | 'extended' | 'maximum',
   result: OptimizationResult
 ): Promise<DocumentationEntryData | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    console.error('User not authenticated');
+    return null;
+  }
+
   const { data, error } = await supabase
     .from('documentation_entries')
     .insert({
@@ -36,6 +47,8 @@ export async function createEntry(
       value_after: result.valueEstimate.value_after,
       mappings: result.mappings,
       status: 'draft',
+      created_by: user.id,
+      updated_by: user.id,
     })
     .select()
     .single();
@@ -52,11 +65,16 @@ export async function updateEntry(
   id: string,
   updates: Partial<DocumentationEntryData>
 ): Promise<DocumentationEntryData | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data, error } = await supabase
     .from('documentation_entries')
     .update({
       ...updates,
       updated_at: new Date().toISOString(),
+      updated_by: user?.id,
     })
     .eq('id', id)
     .select()

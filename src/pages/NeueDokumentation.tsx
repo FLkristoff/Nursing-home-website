@@ -4,6 +4,7 @@ import { optimizeDocumentation, ApiTimeoutError, ApiError } from '../services/ap
 import { validateDocumentationText, validatePatientName } from '../utils/validation';
 import OptimizationResultComponent from '../components/OptimizationResult';
 import { createEntry, updateEntry } from '../services/database';
+import { useToast } from '../context/ToastContext';
 import type { DocumentationEntry, OptimizationResult } from '../types/documentation';
 
 const MAX_TEXT_LENGTH = parseInt(
@@ -11,11 +12,7 @@ const MAX_TEXT_LENGTH = parseInt(
   10
 );
 
-interface NeueDokumentationProps {
-  onNavigateBack?: () => void;
-}
-
-export default function NeueDokumentation({ onNavigateBack }: NeueDokumentationProps) {
+export default function NeueDokumentation() {
   const [patientName, setPatientName] = useState('');
   const [mode, setMode] = useState<'manual' | 'dictation'>('manual');
   const [text, setText] = useState('');
@@ -121,22 +118,7 @@ export default function NeueDokumentation({ onNavigateBack }: NeueDokumentationP
   const isTextTooLong = textLength > MAX_TEXT_LENGTH;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center gap-4">
-          {onNavigateBack && (
-            <button
-              onClick={onNavigateBack}
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              ← Zurück
-            </button>
-          )}
-          <h1 className="text-xl font-semibold text-gray-900">Neue Dokumentation</h1>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-6">Eingabe</h2>
@@ -316,7 +298,6 @@ export default function NeueDokumentation({ onNavigateBack }: NeueDokumentationP
             )}
           </div>
         </div>
-      </div>
     </div>
   );
 }
